@@ -2,8 +2,10 @@
 var _ = require('lodash');
 var GraphParser = require('./GraphParser');
 var gp = new GraphParser();
-var graph = gp.parse('graph2');
+var graph = gp.parse('gt2');
 
-var table = graph.depthSearch(graph.getVertexByName('Vitória'), graph.getVertexByName('Cariacica'));
+//graph.depthSearch(graph.getVertexByName('Serra'), graph.getVertexByName('Vila-Velha'));
+//graph.widthSearch(graph.getVertexByName('Serra'), graph.getVertexByName('Vila-Velha'));
+var table = graph.bellmanFord(graph.getVertexByName('Serra'), graph.getVertexByName('Vila-Velha'));
 table.printTable();
 //console.log(graph.getVertexEdges(graph.getVertexByName('Vitória')));

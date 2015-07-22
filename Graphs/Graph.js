@@ -64,7 +64,35 @@ module.exports = function(){
     var visited = [];
     var finished = [];
     var pt = new PrecursorTable();
-    pt.init(source, this.vertices.all());
+    pt.init(_.clone(source), _.clone(this.vertices.all()));
+
+    var find = function(self, src, dst, aCost){
+
+      var edges = _.sortBy(self.getVertexEdges(src), 'cost');
+      visited.push(src);
+
+      console.log("Vertex:"+JSON.stringify(src));
+      console.log("Edges:\n");
+      console.log(edges);
+      console.log('\n--- --- ---\n');
+
+      for (var i = 0; i < edges.length; i++) {
+        if(! _.some(visited, edges[i].destination))
+          find(self, edges[i].destination, dst, aCost+edges[i].cost);
+      }
+
+      finished.push(src);
+    };
+
+    find(this, source, destination, 0);
+  };
+
+  this.bellmanFord = function (source, destination){
+
+    var visited = [];
+    var finished = [];
+    var pt = new PrecursorTable();
+    pt.init(_.clone(source), _.clone(this.vertices.all()));
 
     var find = function(self, src, dst, aCost){
 
@@ -84,4 +112,29 @@ module.exports = function(){
 
     return pt;
   };
+
+  this.widthSearch = function (source, destination){
+    var visited = [];
+    var pt = new PrecursorTable();
+    var rest = _.clone(this.vertices.all());
+
+    pt.init(_.clone(source), _.clone(rest));
+
+    while(!_.isEmpty(rest)){
+
+        var node = rest.shift();
+        var edges = _.sortBy(this.getVertexEdges(node), 'cost');
+
+        console.log("Vertex: "+JSON.stringify(node));
+        for (var i = 0; i < edges.length; i++) {
+          console.log("Edge "+i+":");
+          console.log(edges[i]);
+        }
+        console.log("\n--- --- --- ---\n");
+        visited.push(node);
+    }
+
+    //return pt;
+  };
+
 };
