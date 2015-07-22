@@ -47,15 +47,17 @@ var PrecursorTable = function(){
     }
 
     if(line.cost > edge.cost+aCost)
-      this.lines.replace(lineId, new PrecursorLine(edge.destination, edge.cost, edge.source));
+      this.lines.replace(lineId, new PrecursorLine(edge.destination, edge.cost+aCost, edge.source));
   };
 
   this.printTable = function(){
     var lines = this.lines.all();
-    console.log('\t\t\t Tabela de Predecessores \t\t\t');
-    console.log('|Vértice\t\t'+'|\tCusto\t\t'+'|\tPredecessor\t\t');
+    var hr = '----------------';
+    console.log('\t\tTabela de Predecessores \t\t');
+    console.log('|Vértice\t'+'|\tCusto\t'+'|\tPredecessor\t');
+    console.log(hr+' '+hr+' '+hr+'\t');
     for (var i = 0; i < lines.length; i++) {
-      var msg = '|'+stf(lines[i].vertex)+'\t\t|\t'+lines[i].cost+'\t\t|\t'+stf(lines[i].precursor)+'\t';
+      var msg = '|'+stf(lines[i].vertex)+'\t\t|\t'+lines[i].cost+'\t|\t'+stf(lines[i].precursor);
       console.log(msg);
     }
   };
