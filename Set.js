@@ -7,7 +7,7 @@ module.exports = function(){
   this.length = 0;
 
   this.add = function (item){
-    if (exists(this.collection, item))
+    if (this.exists(item))
       return;
 
     this.collection.push(item);
@@ -25,7 +25,18 @@ module.exports = function(){
     return this.collection;
   };
 
-  var exists = function(collection, item){
-    return _.some(collection, item);
+  this.exists = function(item){
+    return _.some(this.collection, item);
+  };
+
+  var inBounds = function (self, value){
+    return (value >= 0 && value < self.collection.length);
+  };
+
+  this.replace = function(index, item){
+    if(! inBounds(this, index))
+      return;
+
+      this.collection[index] = item;
   };
 };
