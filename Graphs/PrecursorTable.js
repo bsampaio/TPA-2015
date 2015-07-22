@@ -22,8 +22,16 @@ var PrecursorTable = function(){
 
   var addVertex = function(self, vertex, cost, precursor){
     var l = new PrecursorLine(vertex, cost, precursor);
-    self.lines.add(l);
+
+    if(! self.exists(vertex))
+      self.lines.add(l);
   };
+
+  this.exists = function(vertex){
+    var lines = this.lines.all().clone();
+    return _.some(lines,'vertex',vertex);
+  };
+
 
   this.relax = function(edge, aCost){
     var allLines = this.lines.all();
@@ -31,7 +39,7 @@ var PrecursorTable = function(){
     var line = null;
 
     for (var i = 0; i < allLines.length; i++) {
-      if(_.isEqual(allLines[i].vertex, edge.destination)){
+      if(_.isEqual(allLines[i].vertex.id, edge.destination.id)){
         lineId = i;
         line = allLines[i];
         break;

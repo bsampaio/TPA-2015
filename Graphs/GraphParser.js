@@ -29,18 +29,16 @@ var GraphParser = function (){
     }
 
     for (var j = 0; j < nmbVertices; j++){
-      for (var k = 0; k < lines[vIndex].length; k++) {
+      var line = lines[vIndex];
+      var costs = line.split(' ');
+      //Remove o \n
+      //costs.pop();
 
-        var adjLine = [];
-
-        for (var l = 0; l < lines[vIndex].length; l++) {
-
-          if(lines[vIndex][l] !== ' ' && lines[vIndex][l] !== '\n')
-            adjLine.push(parseFloat(lines[vIndex][l]));
-        }
-
-        graph.adjacency[j] = adjLine;
+      for (var k = 0; k < costs.length; k++) {
+        costs[k] = parseFloat(costs[k]);
       }
+
+      graph.adjacency[j] = costs;
       vIndex++;
     }
 
