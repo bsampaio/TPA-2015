@@ -1,9 +1,30 @@
 
+/**
+ * Definindo constantes de configuração
+ */
+var CONSTANTS = (function() {
+     var private = {
+         'STATES': {
+           "visited":"VISITED",
+           "finished":"FINISHED",
+           "pristine":"PRISTINE"
+         },
+     };
+
+     return {
+        /**
+         * Retorna o valor correspondente à constante
+         */
+        get: function(name) { return private[name]; }
+    };
+})();
+
 var Set = require('./Set');
 var Edge = require('./Edge');
 _ = require('lodash');
 var PrecursorTable = require('./PrecursorTable');
 var PrecursorLine = require('./PrecursorLine');
+var DFSReport = require('./DFSReport');
 
 module.exports = function(){
 
@@ -135,6 +156,50 @@ module.exports = function(){
     }
 
     //return pt;
+  };
+
+  this.dfs = function(){
+    var status = [];
+    var timer = {time: 0};
+    var discoveryTime = [];
+    var pred = [];
+    var finishTime = [];
+    var vertices = _.clone(this.vertices.all());
+    vertices.forEach(function(el, id, all){
+      status[id] = CONSTANTS.get('STATES').pristine;
+      pred[id] = [];
+    });
+    for (var i = 0; i < vertices.length; i++) {
+      var vertex = vertices[i];
+      if(status[vertex.id] == CONSTANTS.get('STATES').pristine)
+        this.visita(vertex, status, timer, discoveryTime, finishTime, pred);
+    }
+
+    var report = new DFSReport(vertices, discoveryTime, finishTime, _.clone(pred));
+    report.print();
+
+    return report;
+  };
+
+  this.visita = function(vertex, status, timer, discoveryTime, finishTime, pred){
+    status[vertex.id] = CONSTANTS.get('STATES').visited;
+    timer.time++;
+    discoveryTime[vertex.id] = _.clone(timer.time);
+
+    var edges = this.getVertexEdges(vertex);
+    for (var i = 0; i < edges.length; i++) {
+      var destination = edges[i].destination;
+      if( status[destination.id] === CONSTANTS.get('STATES').pristine ){
+        pred[destination.id].push(vertex);
+        this.visita(destination, status, timer, discoveryTime, finishTime, pred);
+      }else if(status[destination.id] !== CONSTANTS.get('STATES').finished){
+        pred[destination.id].push(vertex);
+      }
+    }
+
+    status[vertex.id] = CONSTANTS.get('STATES').finished;
+    timer.time++;
+    finishTime[vertex.id] = timer.time;
   };
 
 };
