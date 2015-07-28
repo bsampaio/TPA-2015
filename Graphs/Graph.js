@@ -63,41 +63,53 @@ module.exports = function(){
 
     var visited = [];
     var finished = [];
+    var p = [];
     var pt = new PrecursorTable();
     pt.init(_.clone(source), _.clone(this.vertices.all()));
+    this.vertices.all().forEach(function(element, index, all){
+      p[element.id] = [];
+    });
 
     var find = function(self, src, dst, aCost){
 
       var edges = _.sortBy(self.getVertexEdges(src), 'cost');
       visited.push(src);
 
-      console.log("Vertex:"+JSON.stringify(src));
-      console.log("Edges:\n");
-      console.log(edges);
-      console.log('\n--- --- ---\n');
-
       for (var i = 0; i < edges.length; i++) {
-        if(! _.some(visited, edges[i].destination))
+        if(! _.some(visited, edges[i].destination)){
+          p[edges[i].destination.id].push(src);
           find(self, edges[i].destination, dst, aCost+edges[i].cost);
+        }
       }
 
       finished.push(src);
     };
 
     find(this, source, destination, 0);
+
+    var v = this.vertices.all();
+    for (var i = 0; i < v.length; i++) {
+      var vid = v[i].id;
+      console.log("Vertice |   Pred. ");
+      console.log(JSON.stringify(v[i].name)+" \t| \t"+JSON.stringify(_.uniq(_.pluck(p[vid],'name'))));
+    }
   };
 
   this.bellmanFord = function (source, destination){
 
     var visited = [];
     var finished = [];
+
     var pt = new PrecursorTable();
     pt.init(_.clone(source), _.clone(this.vertices.all()));
+
 
     var find = function(self, src, dst, aCost){
 
       var edges = _.sortBy(self.getVertexEdges(src), 'cost');
       visited.push(src);
+
+
 
       for (var i = 0; i < edges.length; i++) {
         pt.relax(edges[i], aCost);
@@ -108,33 +120,43 @@ module.exports = function(){
       finished.push(src);
     };
 
-    find(this, source, destination, 0);
+    for (var i = 0; i < this.vertices.length; i++) {
+      find(this, source, destination, 0);
+    }
 
     return pt;
   };
 
-  this.widthSearch = function (source, destination){
+  this.widthSearch = function (source){
     var visited = [];
-    var pt = new PrecursorTable();
-    var rest = _.clone(this.vertices.all());
+    var next = [];
+    next.push(source);
+    var p = [];
+    var vertices = _.clone(this.vertices.all());
+    vertices.forEach(function(el, i, all){
+      p[el.id] = [];
+    });
 
-    pt.init(_.clone(source), _.clone(rest));
+    while(!_.isEmpty(next)){
 
-    while(!_.isEmpty(rest)){
-
-        var node = rest.shift();
+        var node = next.shift();
+        visited.push(node);
         var edges = _.sortBy(this.getVertexEdges(node), 'cost');
 
-        console.log("Vertex: "+JSON.stringify(node));
         for (var i = 0; i < edges.length; i++) {
-          console.log("Edge "+i+":");
-          console.log(edges[i]);
+          if(! _.some(visited, edges[i].destination)){
+            next.push(edges[i].destination);
+            p[edges[i].destination.id] = edges[i].source;
+            visited.push(edges[i].destination);
+          }
         }
-        console.log("\n--- --- --- ---\n");
-        visited.push(node);
     }
 
-    //return pt;
+    for (var j = 0; j < vertices.length; j++) {
+      var vid = vertices[j].id;
+      console.log("Vertice |   Pred. ");
+      console.log(JSON.stringify(vertices[j].name)+" \t| \t"+JSON.stringify(p[vid].name));
+    }
   };
 
 };
