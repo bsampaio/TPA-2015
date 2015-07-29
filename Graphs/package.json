@@ -4,10 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start" : "node index.js"
+    "start": "node index.js"
   },
   "dependencies": {
-    "lodash": "^3.10.0"
+    "lodash": "^3.10.0",
+    "promise": "^7.0.3"
   },
   "author": "",
   "license": "ISC"

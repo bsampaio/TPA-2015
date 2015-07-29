@@ -7,6 +7,12 @@ var PrecursorTable = function(){
 
   this.lines = null;
 
+  this.getCost = function (vertex){
+    var line = this.getLine(vertex);
+    if(line)
+      return line.cost;
+  };
+
   this.init = function(source, vertices){
 
     this.lines = new Set();
@@ -32,6 +38,18 @@ var PrecursorTable = function(){
     return _.some(lines,'vertex',vertex);
   };
 
+
+  this.newRelax = function(edge){
+    var line = this.getLine(edge.destination);
+    var newCost = this.getLine(edge.source).cost+edge.cost;
+    if (line.cost > newCost) {
+      this.lines.replace(this.lines.getIndex(line), new PrecursorLine(edge.destination, newCost, edge.source));
+    }
+  };
+
+  this.getLine = function(vertex){
+    return _.find(this.lines.all(), 'vertex', vertex);
+  };
 
   this.relax = function(edge, aCost){
     var allLines = this.lines.all();

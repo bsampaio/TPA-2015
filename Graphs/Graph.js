@@ -80,12 +80,13 @@ module.exports = function(){
     }
   };
 
-  this.depthSearch = function (source, destination){
+  this.depthSearch = function (source, destination, print){
 
     var visited = [];
     var finished = [];
     var p = [];
     var pt = new PrecursorTable();
+
     pt.init(_.clone(source), _.clone(this.vertices.all()));
     this.vertices.all().forEach(function(element, index, all){
       p[element.id] = [];
@@ -103,48 +104,49 @@ module.exports = function(){
         }
       }
 
-      finished.push(src);
+      //insere no inicio
+      finished.unshift(src);
     };
 
     find(this, source, destination, 0);
 
-    var v = this.vertices.all();
-    for (var i = 0; i < v.length; i++) {
-      var vid = v[i].id;
-      console.log("Vertice |   Pred. ");
-      console.log(JSON.stringify(v[i].name)+" \t| \t"+JSON.stringify(_.uniq(_.pluck(p[vid],'name'))));
+    if (print) {
+      var v = this.vertices.all();
+      for (var i = 0; i < v.length; i++) {
+        var vid = v[i].id;
+        console.log("Vertice |   Pred. ");
+        console.log(JSON.stringify(v[i].name)+" \t| \t"+JSON.stringify(_.uniq(_.pluck(p[vid],'name'))));
+      }
     }
+
+    return finished;
   };
 
-  this.bellmanFord = function (source, destination){
 
-    var visited = [];
-    var finished = [];
-
+  this.initUniqOrigin = function(source){
     var pt = new PrecursorTable();
     pt.init(_.clone(source), _.clone(this.vertices.all()));
+    return pt;
+  };
 
-
-    var find = function(self, src, dst, aCost){
-
-      var edges = _.sortBy(self.getVertexEdges(src), 'cost');
-      visited.push(src);
-
-
-
-      for (var i = 0; i < edges.length; i++) {
-        pt.relax(edges[i], aCost);
-        if(! _.some(visited, edges[i].destination))
-          find(self, edges[i].destination, dst, aCost+edges[i].cost);
+  this.BellmanFord = function(source){
+    var pt = this.initUniqOrigin(source);
+    var edges = this.edges.all();
+    for (var i = 0; i < pt.lines.length; i++) {
+      for (var j = 0; j < edges.length; j++) {
+        pt.newRelax(edges[j]);
       }
-
-      finished.push(src);
-    };
-
-    for (var i = 0; i < this.vertices.length; i++) {
-      find(this, source, destination, 0);
     }
 
+    for (var k = 0; k < edges.length; k++) {
+      var dCost = pt.getCost(edges[k].destination);
+      var sCost =  pt.getCost(edges[k].source)+edges[k].cost;
+      if (dCost > sCost) {
+        throw new Error('Parece que temos ciclos negativos :\'( ');
+      }
+    }
+
+    pt.printTable();
     return pt;
   };
 
@@ -180,48 +182,64 @@ module.exports = function(){
     }
   };
 
-  this.dfs = function(){
-    var status = [];
-    var timer = {time: 0};
-    var discoveryTime = [];
-    var pred = [];
-    var finishTime = [];
-    var vertices = _.clone(this.vertices.all());
-    vertices.forEach(function(el, id, all){
-      status[id] = CONSTANTS.get('STATES').pristine;
-      pred[id] = [];
-    });
-    for (var i = 0; i < vertices.length; i++) {
-      var vertex = vertices[i];
-      if(status[vertex.id] == CONSTANTS.get('STATES').pristine)
-        this.visita(vertex, status, timer, discoveryTime, finishTime, pred);
-    }
+  this.GAO = function(source){
+    var pt = this.initUniqOrigin(source);
+    var lot = this.depthSearch(source);
 
-    var report = new DFSReport(vertices, discoveryTime, finishTime, _.clone(pred));
-    report.print();
-
-    return report;
-  };
-
-  this.visita = function(vertex, status, timer, discoveryTime, finishTime, pred){
-    status[vertex.id] = CONSTANTS.get('STATES').visited;
-    timer.time++;
-    discoveryTime[vertex.id] = _.clone(timer.time);
-
-    var edges = this.getVertexEdges(vertex);
-    for (var i = 0; i < edges.length; i++) {
-      var destination = edges[i].destination;
-      if( status[destination.id] === CONSTANTS.get('STATES').pristine ){
-        pred[destination.id].push(vertex);
-        this.visita(destination, status, timer, discoveryTime, finishTime, pred);
-      }else if(status[destination.id] !== CONSTANTS.get('STATES').finished){
-        pred[destination.id].push(vertex);
+    for (var i = 0; i < lot.length; i++) {
+      var adj = this.getVertexEdges(lot[i]);
+      for (var j = 0; j < adj.length; j++) {
+        var edge = adj[j];
+        pt.newRelax(edge);
       }
     }
 
-    status[vertex.id] = CONSTANTS.get('STATES').finished;
-    timer.time++;
-    finishTime[vertex.id] = timer.time;
+    pt.printTable();
+    return pt;
   };
+
+  // this.dfs = function(){
+  //   var status = [];
+  //   var timer = {time: 0};
+  //   var discoveryTime = [];
+  //   var pred = [];
+  //   var finishTime = [];
+  //   var vertices = _.clone(this.vertices.all());
+  //   vertices.forEach(function(el, id, all){
+  //     status[id] = CONSTANTS.get('STATES').pristine;
+  //     pred[id] = [];
+  //   });
+  //   for (var i = 0; i < vertices.length; i++) {
+  //     var vertex = vertices[i];
+  //     if(status[vertex.id] == CONSTANTS.get('STATES').pristine)
+  //       this.visita(vertex, status, timer, discoveryTime, finishTime, pred);
+  //   }
+  //
+  //   var report = new DFSReport(vertices, discoveryTime, finishTime, _.clone(pred));
+  //   report.print();
+  //
+  //   return report;
+  // };
+  //
+  // this.visita = function(vertex, status, timer, discoveryTime, finishTime, pred){
+  //   status[vertex.id] = CONSTANTS.get('STATES').visited;
+  //   timer.time++;
+  //   discoveryTime[vertex.id] = _.clone(timer.time);
+  //
+  //   var edges = this.getVertexEdges(vertex);
+  //   for (var i = 0; i < edges.length; i++) {
+  //     var destination = edges[i].destination;
+  //     if( status[destination.id] === CONSTANTS.get('STATES').pristine ){
+  //       pred[destination.id].push(vertex);
+  //       this.visita(destination, status, timer, discoveryTime, finishTime, pred);
+  //     }else if(status[destination.id] !== CONSTANTS.get('STATES').finished){
+  //       pred[destination.id].push(vertex);
+  //     }
+  //   }
+  //
+  //   status[vertex.id] = CONSTANTS.get('STATES').finished;
+  //   timer.time++;
+  //   finishTime[vertex.id] = timer.time;
+  // };
 
 };

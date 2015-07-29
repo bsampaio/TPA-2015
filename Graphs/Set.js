@@ -14,6 +14,10 @@ module.exports = function(){
     this.length++;
   };
 
+  this.getIndex = function(item){
+    return _.indexOf(this.collection, item);
+  };
+
   this.get = function (index){
     if(index > this.collection.length-1)
       return;

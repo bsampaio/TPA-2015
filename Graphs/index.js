@@ -4,8 +4,19 @@ var GraphParser = require('./GraphParser');
 var gp = new GraphParser();
 var graph = gp.parse('gt3');
 
-//graph.depthSearch(graph.getVertexByName('A'), graph.getVertexByName('E'));
-//graph.widthSearch(graph.getVertexByName('A'));
-var table = graph.bellmanFord(graph.getVertexByName('A'), graph.getVertexByName('E'));
-table.printTable();
+// console.log("Busca em profundidade: \n");
+// graph.depthSearch(graph.getVertexByName('A'), graph.getVertexByName('E'));
+// console.log("\n------\n");
+
+// console.log("Busca em Largura: \n");
+// graph.widthSearch(graph.getVertexByName('A'));
+// console.log("\n------\n");
+
+console.log("GAO: \n");
+graph.GAO(graph.getVertexByName('A'));
+console.log("\n------\n");
+
+// console.log("Bellman-Ford: \n");
+// graph.BellmanFord(graph.getVertexByName('A'));
+// console.log("\n------\n");
 //console.log(graph.getVertexEdges(graph.getVertexByName('Vitória')));
