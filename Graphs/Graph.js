@@ -112,9 +112,9 @@ module.exports = function(){
 
     if (print) {
       var v = this.vertices.all();
+      console.log("Vertice |   Pred. ");
       for (var i = 0; i < v.length; i++) {
         var vid = v[i].id;
-        console.log("Vertice |   Pred. ");
         console.log(JSON.stringify(v[i].name)+" \t| \t"+JSON.stringify(_.uniq(_.pluck(p[vid],'name'))));
       }
     }
@@ -175,9 +175,9 @@ module.exports = function(){
         }
     }
 
+    console.log("Vertice |   Pred. ");
     for (var j = 0; j < vertices.length; j++) {
       var vid = vertices[j].id;
-      console.log("Vertice |   Pred. ");
       console.log(JSON.stringify(vertices[j].name)+" \t| \t"+JSON.stringify(p[vid].name));
     }
   };
@@ -198,48 +198,62 @@ module.exports = function(){
     return pt;
   };
 
-  // this.dfs = function(){
-  //   var status = [];
-  //   var timer = {time: 0};
-  //   var discoveryTime = [];
-  //   var pred = [];
-  //   var finishTime = [];
-  //   var vertices = _.clone(this.vertices.all());
-  //   vertices.forEach(function(el, id, all){
-  //     status[id] = CONSTANTS.get('STATES').pristine;
-  //     pred[id] = [];
-  //   });
-  //   for (var i = 0; i < vertices.length; i++) {
-  //     var vertex = vertices[i];
-  //     if(status[vertex.id] == CONSTANTS.get('STATES').pristine)
-  //       this.visita(vertex, status, timer, discoveryTime, finishTime, pred);
-  //   }
-  //
-  //   var report = new DFSReport(vertices, discoveryTime, finishTime, _.clone(pred));
-  //   report.print();
-  //
-  //   return report;
-  // };
-  //
-  // this.visita = function(vertex, status, timer, discoveryTime, finishTime, pred){
-  //   status[vertex.id] = CONSTANTS.get('STATES').visited;
-  //   timer.time++;
-  //   discoveryTime[vertex.id] = _.clone(timer.time);
-  //
-  //   var edges = this.getVertexEdges(vertex);
-  //   for (var i = 0; i < edges.length; i++) {
-  //     var destination = edges[i].destination;
-  //     if( status[destination.id] === CONSTANTS.get('STATES').pristine ){
-  //       pred[destination.id].push(vertex);
-  //       this.visita(destination, status, timer, discoveryTime, finishTime, pred);
-  //     }else if(status[destination.id] !== CONSTANTS.get('STATES').finished){
-  //       pred[destination.id].push(vertex);
-  //     }
-  //   }
-  //
-  //   status[vertex.id] = CONSTANTS.get('STATES').finished;
-  //   timer.time++;
-  //   finishTime[vertex.id] = timer.time;
-  // };
+  var removeMenor = function(Q, custo){
+    var min = _.first(Q);
+    var mId;
+    if(min){
+      mId = min.id;
+      min = custo[min.id];
+    }
 
+    for (var i = 0; i < Q.length; i++) {
+      var vCost = custo[Q[i].id];
+      if(vCost < min){
+        min = vCost;
+        mId = Q[i].id;
+      }
+    }
+
+    return _.remove(Q, function(el){
+      return el.id === mId;
+    });
+  };
+
+  this.Prim = function(source, print){
+    var custo = [];
+    var p = [];
+    var Q = [];
+    var vertices = _.clone(this.vertices.all());
+    vertices.forEach(function(el, id, arr){
+      custo[el.id] = Infinity;
+      p[el.id] = undefined;
+    });
+    custo[source.id] = 0;
+    Q = _.clone(this.vertices.all());
+    while (! _.isEmpty(Q)){
+      var u = _.first(removeMenor(Q, custo));
+      if(u){
+        var edges = this.getVertexEdges(u);
+        var adj = _.pluck(edges, 'destination');
+        for (var i = 0; i < adj.length; i++) {
+          var v = adj[i];
+          if(_.some(Q, v) && edges[i].cost < custo[v.id]){
+            p[v.id] = u;
+            custo[v.id] = edges[i].cost;
+          }
+        }
+      }
+    }
+
+    if(print){
+      var stf = function(obj){
+        if(obj !== null && !_.isUndefined(obj))
+          return JSON.stringify(obj.name);
+      };
+      console.log("Vertice: \t| Custo: \t| Pred. ");
+      for (var j = 0; j < vertices.length; j++) {
+        console.log(stf(vertices[j])+" \t\t| "+custo[j]+" \t\t| "+stf(p[j]));
+      }
+    }
+  };
 };
